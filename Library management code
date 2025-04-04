@@ -1,0 +1,132 @@
+ import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+
+class Book {
+    String title;
+    String author;
+    String category;
+    int quantity;
+    boolean isBorrowed;
+    LocalDate borrowDate;
+    LocalDate dueDate;
+    String borrowerName;
+
+    public Book(String title, String author, String category, int quantity) {
+        this.title = title;
+        this.author = author;
+        this.category = category;
+        this.quantity = quantity;
+        this.isBorrowed = false;
+        this.borrowerName = "";
+    }
+}
+
+class Library {
+    ArrayList<Book> books = new ArrayList<>();
+    double finePerDay = 5.0;
+    List<String> validCategories = Arrays.asList("Fiction", "Non-Fiction", "Novel", "Romance", "Children's Books");
+
+    public void borrowBook(Scanner scanner) {
+        System.out.print("Enter your full name: ");
+        String userName = scanner.nextLine();
+
+        System.out.println("\nAvailable Books:");
+        listBooks();
+
+        System.out.print("Enter the title of the book you want to borrow: ");
+        String title = scanner.nextLine();
+
+        System.out.print("Enter the number of days you want to borrow the book for: ");
+        int borrowDays = scanner.nextInt();
+        scanner.nextLine();
+
+        for (Book book : books) {
+            if (book.title.equalsIgnoreCase(title) && book.quantity > 0) {
+                book.isBorrowed = true;
+                book.borrowerName = userName;
+                book.quantity--;
+                book.borrowDate = LocalDate.now();
+                book.dueDate = book.borrowDate.plusDays(borrowDays);
+                System.out.println("Book borrowed successfully by " + userName + ". Please return it by " + book.dueDate + ".");
+                return;
+            }
+        }
+        System.out.println("Book not available or already fully borrowed.");
+    }
+
+    public void returnBook(Scanner scanner) {
+        String userName;
+        while (true) {
+            System.out.print("Enter your full name: ");
+            userName = scanner.nextLine();
+            if (!userName.matches(".*\\d.*")) {
+                break;
+            }
+            System.out.println("Invalid name! Names cannot contain numbers. Please enter a valid name.");
+        }
+
+        System.out.print("Enter book title to return: ");
+        String title = scanner.nextLine();
+
+        System.out.print("Enter the number of days you kept the book: ");
+        int keptDays = scanner.nextInt();
+        scanner.nextLine();
+
+        for (Book book : books) {
+            if (book.title.equalsIgnoreCase(title) && book.isBorrowed && book.borrowerName.equalsIgnoreCase(userName)) {
+                LocalDate returnDate = book.borrowDate.plusDays(keptDays);
+                long overdueDays = ChronoUnit.DAYS.between(book.dueDate, returnDate);
+                double fine = (overdueDays > 0) ? overdueDays * finePerDay : 0;
+
+                book.isBorrowed = false;
+                book.quantity++;
+                book.borrowerName = "";
+                book.borrowDate = null;
+                book.dueDate = null;
+
+                System.out.println("Thank you, " + userName + ", for returning the book: " + title);
+                System.out.println("Due date was: " + book.dueDate);
+                System.out.println("Returned on: " + returnDate);
+                if (fine > 0) {
+                    System.out.println("Overdue fine: " + fine);
+                }
+                System.out.println("Book successfully returned. Current stock: " + book.quantity);
+                return;
+            }
+        }
+        System.out.println("Book not found or wasn't borrowed by you.");
+    }
+
+    public void listBooks() {
+        System.out.println("\n--------------------------------------------------------------------------------");
+        System.out.printf("%-30s %-25s %-15s %-10s\n", "Title", "Author", "Category", "Quantity");
+        System.out.println("--------------------------------------------------------------------------------");
+        for (Book book : books) {
+            System.out.printf("%-30s %-25s %-15s %-10d\n", book.title, book.author, book.category, book.quantity);
+        }
+        System.out.println("--------------------------------------------------------------------------------");
+    }
+
+    public void addBooks(Scanner scanner) {
+        int numBooks;
+        while (true) {
+            System.out.print("Enter the number of books to add: ");
+            if (scanner.hasNextInt()) {
+                numBooks = scanner.nextInt();
+                scanner.nextLine();
+                break;
+            } else {
+                System.out.println("Invalid input! Please enter a valid number.");
+                scanner.next();
+            }
+        }
+
+        for (int i = 0; i < numBooks; i++) {
+            System.out.println("Adding Book " + (i + 1) + ":");
+            String title;
+       
+       
